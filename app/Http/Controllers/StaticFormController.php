@@ -18,6 +18,8 @@ class StaticFormController extends Controller
     public function send(Request $request){
 
         
+        $redirectTo=$request->redirectTo ?? null;
+  
         //Validate request Parameters
         $validator = $this->validate_inputs($request);   
         if ($validator->fails()) {           
@@ -25,7 +27,7 @@ class StaticFormController extends Controller
             if($request->ajax() || $request->wantsJson()){
                 return response()->json(['status'=>0,'message'=>$validation_error[0]], 422);
             }//End of if case
-            return redirect()->back()->with('error',$validation_error[0]);
+            return redirect()->to($this->redirect_back_url($redirectTo,0,$validation_error[0]));
         }
 
         //Check Honepot Parameter For Spam Attack
@@ -33,15 +35,16 @@ class StaticFormController extends Controller
             if($request->ajax() || $request->wantsJson()){
                 return response()->json(['status'=>0,'message'=>"HoneyPot Attack Detected."], 422);
             }//End of if case
-            return redirect()->back()->with('error','HoneyPot Attack Detected.');
+            return redirect()->to($this->redirect_back_url($redirectTo,0,'HoneyPot Attack Detected.'));
         }
          
+
         $validate_access_key=form_access_key::validate_access_key($request->accessKey);
         if($validate_access_key==-1){
             if($request->ajax() || $request->wantsJson()){
                 return response()->json(['status'=>0,'message'=>"Invalid Access Key."], 422);
             }//End of if case
-            return redirect()->back()->with('error','Invalid Access Key.');
+            return redirect()->to($this->redirect_back_url($redirectTo,0,'Invalid Access Key.'));
         }//End of if case
 
         //Send mail
@@ -53,12 +56,12 @@ class StaticFormController extends Controller
             if($request->ajax() || $request->wantsJson()){
                 return response()->json(['status'=>1,'message'=>"Info mailed Successfully"], 200);
             }//End of if case
-            return redirect()->back()->with('message','Info. Successfuly mailed');
+            return redirect()->to($this->redirect_back_url($redirectTo,1,'Info. Successfuly mailed'));
         }else{
             if($request->ajax() || $request->wantsJson()){
                 return response()->json(['status'=>0,'message'=>"Failed to sent an email."], 200);
             }//End of if case
-            return redirect()->back()->with('message','Failed to sent an email');
+            return redirect()->to($this->redirect_back_url($redirectTo,0,'Failed to sent an email'));
         }
 
     }//End of function
@@ -69,7 +72,7 @@ class StaticFormController extends Controller
             $redirectTo=redirect()->back()->getTargetUrl();
         }
 
-        $redirectTo = rtrim($redirectTo,"/");
+        $redirectTo = rtrim($redirectTo,"/")."?status=$status&message=$message";
 
         return $redirectTo;
 
