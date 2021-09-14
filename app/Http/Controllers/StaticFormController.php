@@ -63,6 +63,18 @@ class StaticFormController extends Controller
 
     }//End of function
 
+    public function redirect_back_url($redirectTo=null,$status,$message){
+
+        if(!$redirectTo){
+            $redirectTo=redirect()->back()->getTargetUrl();
+        }
+
+        $redirectTo = rtrim($redirectTo,"/");
+
+        return $redirectTo;
+
+    }//End of function
+
     public function insert($data,$mail_status,$accesskey){
 
         $Message = new form_message();
